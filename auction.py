@@ -1,12 +1,15 @@
 # pylint: disable=import-error
 '''
-Genetic approach to dollar auction problem. Individuals compete against
-each other, and the individuals who make the lowest loss win.
+Genetic approach to dollar auction problem. A Game begins with a random
+or predefined population, and takes place over a fixed number of rounds.
+The population plays a round. A round consists of a round-robin
+tournament, and the fittest individuals (winners) are used as the basis
+of a new, mutated population for the next round.
 '''
 import numpy
 import random
 
-class Run():
+class Game():
     '''
     Object representing a run of the problem
     '''
@@ -45,10 +48,30 @@ class Run():
                   ) for elem in genome]
         return genome
 
-    def game(self):
+    def run(self):
         '''
-        Entire runthrough.
+        Run the game.
         '''
+
+    def select_fittest(self):
+        '''
+        Select the fittest members of a population.
+        '''
+    
+    def repopulate(self):
+        '''
+        Produce a new population from the fittest.
+        '''
+
+class Round():
+    '''
+    Play a round of the game, using the given population and competition
+    structure (round robin by default).
+    '''
+
+    def __init__(self, population):
+        self.population = population
+        self.pop_size = len(self.population)
 
     def round_robin(self):
         '''
@@ -62,16 +85,6 @@ class Run():
     def match(self, ind1, ind2):
         '''
         Play the two individuals against each other.
-        '''
-
-    def select_fittest(self):
-        '''
-        Select the fittest members of a population.
-        '''
-    
-    def repopulate(self):
-        '''
-        Produce a new population from the fittest.
         '''
 
 class Individual():
@@ -108,9 +121,10 @@ class Individual():
         '''
         self.money = self.money + amount
 
-    def play(self, bids):
+    def play(self, money, bids):
         '''
-        Make a bid, based on a list of previous bids.
+        Make a bid, based on a list of previous bids, and amount of
+        money left.
         '''
 
     def reproduce(self):

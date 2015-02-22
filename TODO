@@ -1,2 +1,6 @@
-Refactor: make a tournament object (better name?) with genome and mem length as
-class vars
+Make rounds a seperate class
+
+Currently, individuals persists for the length of a round. If this is the case,
+we need to reset their memory every game. Perhaps we should have individuals
+persist only for the length of a match? Maybe we should have two classes, one
+which stores the individual's genome, and one which stores it's memory?
