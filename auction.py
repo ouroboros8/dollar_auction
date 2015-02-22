@@ -14,12 +14,12 @@ class Game():
     Object representing a run of the problem
     '''
 
-    def __init__(self, pop_size, mem_len, gen_len, initial_population=None):
+    def __init__(self, generations, pop_size, mem_len, gen_len):
         self.mem_len = mem_len
         self.gen_len = gen_len
         self.pop_size = pop_size
-        self.initial_population = initial_population
-        self.population = self.get_initial_population()
+        self.initial_population = self.get_initial_population()
+        self.population = self.initial_population
 
     def get_initial_population(self):
         '''
@@ -125,9 +125,4 @@ class Individual():
         '''
         Make a bid, based on a list of previous bids, and amount of
         money left.
-        '''
-
-    def reproduce(self):
-        '''
-        Produce offspring
         '''
