@@ -12,6 +12,12 @@ import signal
 
 from collections.abc import Sequence
 
+DEFAULT_OPTS = {
+    "memory_length": 1000,
+    "match_timeout": 5,
+    "bid_timeout": 1,
+}
+
 class TimeoutException(Exception):
     '''
     Denotes an error where a process has elapsed for too long.
@@ -31,15 +37,29 @@ class Game():
     '''
 
     def __init__(self, generations=1000, pop_size=100, genome_len=100,
-                 memory_len=100):
+                 opts=None):
+        self.opts = self.__set_opts__(opts)
+
         self.genome_len = genome_len
-        self.memory_len = memory_len
+        self.memory_len = opts["memory_len"]
 
         self.pop_size = pop_size
         self.initial_population = self.get_initial_population()
         self.population = self.initial_population
 
         self.generations = range(0, generations)
+
+    def __set_opts__(self, opts):
+        '''
+        Set missing options from global DEFAULT_OPTS
+        '''
+        if not opts:
+            opts = {}
+        for key in DEFAULT_OPTS:
+            if key not in opts:
+                opts[key] = DEFAULT_OPTS[key]
+        return opts
+
 
     def get_initial_population(self):
         '''
