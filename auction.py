@@ -5,28 +5,39 @@ each other, and the individuals who make the lowest loss win.
 import numpy
 import random
 
-GENOME_LENGTH = 1000
-MEMORY_LENGTH = 1000
+class Run():
+    '''
+    Object representing a run of the problem
+    '''
 
-def random_genome():
-    genome = [None]*GENOME_LENGTH
-    genome = [(random.choice(['i', 'd',
-                              random.randint(0, MEMORY_LENGTH)
-                             ]
-                            ),
-               random.randint(0, MEMORY_LENGTH),
-               (random.randint(0, GENOME_LENGTH),
-                random.randint(0, GENOME_LENGTH))
-              ) for elem in genome]
-    return genome
+    def __init__(self, pop_size, mem_len, gen_len):
+        self.mem_len = mem_len
+        self.gen_len = gen_len
+        self.initial_population = [Individual(mem_len,
+                                              self.random_genome())
+                                   for i in range(0, pop_size)]
 
+    def random_genome(self):
+        '''
+        Generate a random genome
+        '''
+        genome = [None]*self.gen_len
+        genome = [(random.choice(['i', 'd',
+                                  random.randint(0, self.mem_len)
+                                 ]
+                                ),
+                   random.randint(0, self.mem_len),
+                   (random.randint(0, self.gen_len),
+                    random.randint(0, self.gen_len))
+                  ) for elem in genome]
+        return genome
 
 class Individual():
     '''
     A competing individual in the dollar auction tournament.
     '''
 
-    def __init__(self, genome=None):
+    def __init__(self, mem_len, genome):
         '''
         Initialise an Individual with a certain genome. The genome
         consists of the "instruction set" of the individual, and is a
@@ -43,11 +54,8 @@ class Individual():
         Obviously, n and m must be valid memory indices, and j and k
         must be valid instruction set indices.
         '''
-        if genome:
-            self.genome = genome
-        else:
-            self.genome = random_genome()
-        self.memory = numpy.array([0]*MEMORY_LENGTH, dtype='uint')
+        self.genome = genome
+        self.memory = numpy.array([0]*mem_len, dtype='uint')
 
     def play(self, bids):
         '''
