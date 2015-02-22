@@ -8,8 +8,22 @@ of a new, mutated population for the next round.
 '''
 import numpy
 import random
+import signal
 
 from collections.abc import Sequence
+
+class TimeoutException(Exception):
+    '''
+    Denotes an error where a process has elapsed for too long.
+    '''
+    pass
+
+def timeout_handler(signum, frame):
+    '''
+    Raises a TimeoutException when too much time has passed on a
+    process.
+    '''
+    raise TimeoutException()
 
 class Game():
     '''
@@ -43,6 +57,9 @@ class Game():
         '''
         Run the game.
         '''
+        for _ in self.generations:
+            the_round = Round(self.population)
+            the_round.run()
 
     def select_fittest(self):
         '''
@@ -62,6 +79,12 @@ class Round():
     def __init__(self, population):
         self.population = population
 
+    def run(self):
+        '''
+        Run the round
+        '''
+        return self.round_robin()
+
     def round_robin(self):
         '''
         Each member of the current population plays a match against each
@@ -70,12 +93,21 @@ class Round():
         pop_size = len(self.population)
         for i in range(0, pop_size-1):
             for j in range(i+1, pop_size-1):
-                self.match(self.population[i], self.population[j])
+                signal.signal(signal.SIGALRM, timeout_handler)
+                signal.alarm(5) # Timeout the match in 5 seconds.
+                try:
+                    self.match(self.population[i], self.population[j])
+                except TimeoutError():
+                    pass
+                signal.alarm(0)
+        return self.population
 
     def match(self, ind1, ind2):
         '''
         Play the two individuals against each other.
         '''
+
+        
 
 class Genome(Sequence):
     '''
@@ -128,6 +160,12 @@ class Genome(Sequence):
                   ) for i in range(0, self.__random_genome_index__())]
         return genome
 
+    def mutate(self):
+        '''
+        Produce a mutation of this genome
+        '''
+        
+
 class Individual():
     '''
     A competing individual in the dollar auction tournament.
@@ -136,8 +174,8 @@ class Individual():
     def __init__(self, mem_len, genome):
         '''
         Initialise an Individual with a certain genome.         '''
-        self.genome = genome
         self.memory = numpy.array([0]*mem_len, dtype='uint')
+        self.genome = genome
         self.money = 0
 
     def add_money(self, amount):
