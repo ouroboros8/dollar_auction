@@ -1,0 +1,2 @@
+Refactor: make a tournament object (better name?) with genome and mem length as
+class vars
