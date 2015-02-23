@@ -14,6 +14,7 @@ from collections.abc import Sequence
 
 DEFAULT_OPTS = {
     "memory_length": 1000,
+    "genome_length": 100,
     "match_timeout": 5,
     "bid_timeout": 1,
 }
@@ -24,30 +25,35 @@ class TimeoutException(Exception):
     '''
     pass
 
-def timeout_handler(signum, frame):
+def timeout_handler():
     '''
     Raises a TimeoutException when too much time has passed on a
     process.
     '''
     raise TimeoutException()
 
+def make_population(gene_pool):
+    '''
+    Produce the current population based on the current gene pool.
+    '''
+    return [Individual(genome)
+            for genome in gene_pool]
+
 class Game():
     '''
     Object representing a run of the problem
     '''
 
-    def __init__(self, generations=1000, pop_size=100, genome_len=100,
-                 opts=None):
+    def __init__(self, generations=1000, pop_size=100, opts=None):
         self.opts = self.__set_opts__(opts)
 
-        self.genome_len = genome_len
-        self.memory_len = opts["memory_len"]
-
         self.pop_size = pop_size
-        self.initial_population = self.get_initial_population()
-        self.population = self.initial_population
+        self.initial_gene_pool = self.get_initial_gene_pool()
+        self.gene_pool = self.initial_gene_pool
 
         self.generations = range(0, generations)
+
+        self.the_round = None
 
     def __set_opts__(self, opts):
         '''
@@ -60,26 +66,30 @@ class Game():
                 opts[key] = DEFAULT_OPTS[key]
         return opts
 
-
-    def get_initial_population(self):
+    def get_initial_gene_pool(self):
         '''
         Get the initial population, or create a random one if there is
         no initial population.
         '''
-        if self.initial_population:
-            genomes = self.initial_population
+        if hasattr(self, 'initial_population'):
+            genomes = self.initial_gene_pool
         else:
-            genomes = [Genome(self.genome_len, self.memory_len)
+            genomes = [Genome(self.opts["genome_length"],
+                              self.opts["memory_length"])
                        for i in range(0, self.pop_size)]
         return genomes
+
 
     def run(self):
         '''
         Run the game.
         '''
         for _ in self.generations:
-            the_round = Round(self.population)
-            the_round.run()
+            self.the_round = Round(make_population(self.gene_pool))
+            ranking = self.the_round.run()
+            # winners = top x percentile or something
+            # self.population = reproduce winners
+        # return winners
 
     def select_fittest(self):
         '''
@@ -103,7 +113,12 @@ class Round():
         '''
         Run the round
         '''
-        return self.round_robin()
+        return self.rank(self.round_robin())
+
+    def rank(self, population):
+        '''
+        Rank the population by money
+        '''
 
     def round_robin(self):
         '''
@@ -127,8 +142,6 @@ class Round():
         Play the two individuals against each other.
         '''
 
-        
-
 class Genome(Sequence):
     '''
     The genome consists of the "instruction set" of the individual, and
@@ -149,8 +162,9 @@ class Genome(Sequence):
 
     def __init__(self, length, mem_len):
         self.__list__ = [None]*length
-        self.__list__ = self.random_genome()
         self.mem_len = mem_len
+
+        self.__list__ = self.random_genome()
 
     def __getitem__(self, i):
         return self.__list__[i]
@@ -162,7 +176,7 @@ class Genome(Sequence):
         return random.randint(0, self.mem_len-1)
 
     def __random_genome_index__(self):
-        return random.randint(0, self.__len__-1)
+        return random.randint(0, self.__len__()-1)
 
     def random_genome(self):
         '''
@@ -191,10 +205,10 @@ class Individual():
     A competing individual in the dollar auction tournament.
     '''
 
-    def __init__(self, mem_len, genome):
+    def __init__(self, genome):
         '''
         Initialise an Individual with a certain genome.         '''
-        self.memory = numpy.array([0]*mem_len, dtype='uint')
+        self.memory = numpy.array([0]*genome.mem_len, dtype='uint')
         self.genome = genome
         self.money = 0
 
