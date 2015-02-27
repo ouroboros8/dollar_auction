@@ -45,38 +45,35 @@ class Game():
     '''
 
     def __init__(self, generations=1000, pop_size=100, opts=None):
-        self.opts = self.__set_opts__(opts)
+        self.opts = opts
+        self.__set_opts__()
 
-        self.pop_size = pop_size
-        self.initial_gene_pool = self.get_initial_gene_pool()
+        self.initial_gene_pool = self.generate_initial_gene_pool(
+            pop_size)
         self.gene_pool = self.initial_gene_pool
 
         self.generations = range(0, generations)
 
         self.the_round = None
 
-    def __set_opts__(self, opts):
+    def __set_opts__(self):
         '''
         Set missing options from global DEFAULT_OPTS
         '''
-        if not opts:
-            opts = {}
+        if self.opts is None:
+            self.opts = {}
         for key in DEFAULT_OPTS:
-            if key not in opts:
-                opts[key] = DEFAULT_OPTS[key]
-        return opts
+            if key not in self.opts:
+                self.opts[key] = DEFAULT_OPTS[key]
 
-    def get_initial_gene_pool(self):
+    def generate_initial_gene_pool(self, pop_size):
         '''
         Get the initial population, or create a random one if there is
         no initial population.
         '''
-        if hasattr(self, 'initial_population'):
-            genomes = self.initial_gene_pool
-        else:
-            genomes = [Genome(self.opts["genome_length"],
-                              self.opts["memory_length"])
-                       for i in range(0, self.pop_size)]
+        genomes = [Genome(self.opts["genome_length"],
+                          self.opts["memory_length"])
+                   for i in range(0, pop_size)]
         return genomes
 
 
@@ -87,9 +84,7 @@ class Game():
         for _ in self.generations:
             self.the_round = Round(make_population(self.gene_pool))
             ranking = self.the_round.run()
-            # winners = top x percentile or something
-            # self.population = reproduce winners
-        # return winners
+        return ranking
 
     def select_fittest(self):
         '''
